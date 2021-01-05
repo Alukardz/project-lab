@@ -1,38 +1,54 @@
-def main():
-    header = 'Nombres,Apellidos,Edad,Ahorros,Password'
-    doc_dir = os.path.join(os.getcwd(), sys.argv[1])
-    counter = 0
+import sys
+import tty
+import termios
+
+
+def _getch():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
 
     try:
-        with open(doc_dir, 'a+') as doc:
-            if os.path.getsize(doc_dir) == 0:
-                doc.write(header)
+        tty.setraw(fd)
+        ch = sys.stdin.read(1).strip('\n')
 
-            lines = doc.readlines()
-
-            while counter == 0:
-                names = input('Cedula: ')
-                lastnames = input('Nombre: ')
-                age = input('Edad: ')
-                savings = input('Apellido: ')
-                password = input('Apellido: ')
-                data = f'{names},{lastnames},{age},{savings},{password}'
-
-                respuesta = input('¿Deseas guardar? si/no\n')
-
-                if respuesta == 'no':
-                    counter += 1
-                    print('bye')
-
-                else:
-                    doc.write('\n')
-                    doc.write(data)
-                    print('Registro creado.')
-    except IOError:
-        print('Ruta del documento inválida.')
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
 
 
-if len(sys.argv) >= 2:
-    main()
-else:
-    print('Especificar document. ej. reg_data.py datos.csv')
+def read_char():
+    stringer = ''
+    while True:
+        cha = _getch()
+
+        if cha.isalpha():
+            print(cha, end='', flush=True)
+            stringer += cha
+
+        elif cha == '\x7f':
+            print('\b \b', end='', flush=True)
+
+        elif cha == '\r':
+            print('\r')
+            break
+
+    return stringer
+
+
+def read_int():
+    inger = ''
+    while True:
+        cha = _getch()
+
+        if cha.isdigit():
+            print(cha, end='', flush=True)
+            inger += cha
+
+        elif cha == '\x7f':
+            print('\b \b', end='', flush=True)
+
+        elif cha == '\r':
+            print('\r')
+            break
+
+    return inger
