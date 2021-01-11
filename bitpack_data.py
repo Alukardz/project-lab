@@ -6,6 +6,7 @@ from bitpacking import pack_data, unpack_data
 
 doc_dir = os.path.join(os.getcwd(), sys.argv[1])
 
+
 def main():
     option = 0
 
@@ -105,14 +106,19 @@ def list_data():
             else:
                 doc.seek(0)
                 head = doc.readline().strip('\n').split(',')
-                for idx, line in enumerate(lines, 1):
+                for idx, line in enumerate(lines[1:], 1):
                     split_line = line.strip('\n').split(',')
+                    unpacked = unpack_data(int(split_line[3]))
+                    print(unpacked)
                     print(f'''
     Record #{idx}:
     {head[0]}: {split_line[0]}
     {head[1]}: {split_line[1]}
     {head[2]}: {split_line[2]}
-    {head[3]}: {split_line[3]}
+    {head[3]}: {unpacked[0]}
+    {head[4]}: {unpacked[1]}
+    {head[5]}: {unpacked[2]}
+    {head[6]}: {unpacked[3]}
     ''')
     except IOError:
         print('Ruta del documento inválida.')
@@ -128,22 +134,25 @@ def find_data(cid):
                 found = False
                 doc.seek(0)
                 head = doc.readline().strip('\n').split(',')
-                for idx, line in enumerate(lines):
+                for idx, line in enumerate(lines[1:], 1):
                     split_line = line.strip('\n').split(',')
 
                     if split_line[0] == cid:
                         found = True
+                        unpacked = unpack_data(int(split_line[3]))
                         print(f'''
     Registro #{idx}:
     {head[0]}: {split_line[0]}
     {head[1]}: {split_line[1]}
     {head[2]}: {split_line[2]}
-    {head[3]}: {split_line[3]}
+    {head[3]}: {unpacked[0]}
+    {head[4]}: {unpacked[1]}
+    {head[5]}: {unpacked[2]}
+    {head[6]}: {unpacked[3]}
     ''')
                         return idx
 
                 print('Registro no encontrado.')
-
 
     except IOError:
         print('Ruta del documento inválida.')
@@ -217,6 +226,7 @@ def delete_data(cid):
 
             except IOError:
                 print('Error eliminando registro.')
+
 
 if len(sys.argv) >= 2:
     main()

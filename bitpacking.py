@@ -1,24 +1,9 @@
-def main():
-    ced = '03104263227'
-    name = 'Vlad'
-    lastname = 'Delar'
-    packed_info = 0
-    age = 200
-    sex = 'M'
-    civil_state = 'C'
-    grade = 'P'
-    data_list = [age, sex, civil_state, grade]
-    packed_data = pack_data(data_list)
-    final_data = f'{ced},{name},{lastname},{packed_data}'
-    kp = unpack_data(packed_data)
-
-
 def pack_data(data):
-    packed_info = 0;
-    age = data[0];
-    sex = data[1];
-    civil_state = data[2];
-    grade = data[3];
+    packed_info = 0
+    age = data[0]
+    sex = data[1]
+    civil_state = data[2]
+    grade = data[3]
 
     packed_info = age << 4
 
@@ -48,15 +33,15 @@ def unpack_data(packed_info):
     if not packed_info & 1:
         grade = 'G'
 
-    if packed_info >> 1 & 1:
+    elif packed_info >> 1 & 1:
         grade = 'P'
     else:
-        grade == 'B'
+        grade = 'B'
 
     if packed_info >> 2 & 1:
         civil_state = 'C'
     else:
-        civil_state == 'S'
+        civil_state = 'S'
 
     if packed_info >> 3 & 1:
         sex = 'M'
@@ -64,6 +49,6 @@ def unpack_data(packed_info):
         sex = 'F'
 
     age = packed_info >> 4
-    data = f'{age},{sex},{civil_state},{grade}'
+    data = [age, sex, civil_state, grade]
 
     return data

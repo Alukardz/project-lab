@@ -53,4 +53,4 @@ def read_int():
             print('\r')
             break
 
-    return inger
+    return int(inger)
