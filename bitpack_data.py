@@ -1,6 +1,7 @@
 import sys
 import os
 from char_char import read_char, read_int
+from bitpacking import pack_data, unpack_data
 
 
 doc_dir = os.path.join(os.getcwd(), sys.argv[1])
@@ -23,28 +24,28 @@ Elige la opción deseada:
         if selected == '1':
             register_data()
 
-        if selected == '2':
+        elif selected == '2':
             list_data()
 
-        if selected == '3':
+        elif selected == '3':
             cid = input('Cedula: ')
             find_data(cid)
 
-        if selected == '4':
+        elif selected == '4':
             cid = input('Cedula del registro a editar: ')
             edit_data(cid)
 
-        if selected == '5':
+        elif selected == '5':
             cid = input('Cedula del registro a eliminar: ')
             delete_data(cid)
 
-        if selected == '6':
+        elif selected == '6':
             print('Adios!')
             option += 1
 
 
 def register_data():
-    header = 'Cedula,Nombre,Apellido,Edad'
+    header = 'Cedula,Nombre,Apellido,Edad,Sexo,Estado_Civil,Grado_Academico'
     counter = 0
 
     try:
@@ -67,7 +68,19 @@ def register_data():
                 print('Edad: ')
                 age = read_int()
 
-                data = f'{cid},{name},{lastname},{age}'
+                print('Sexo: F/M ')
+                sex = read_char()
+
+                print('Estado Civil: C/S ')
+                civil_state = read_char()
+
+                print('Grado A: B/G/P: ')
+                grade = read_char()
+
+                data_list = [age, sex, civil_state, grade]
+                packed_data = pack_data(data_list)
+
+                data = f'{cid},{name},{lastname},{packed_data}'
 
                 respuesta = input('¿Deseas guardar? si/no\n')
 
@@ -156,7 +169,20 @@ def edit_data(cid):
 
                 print('Edad: ')
                 age = read_int()
-                data = f'{ced},{name},{lastname},{age}\n'
+
+                print('Sexo: F/M ')
+                sex = read_char()
+
+                print('Estado Civil: C/S ')
+                civil_state = read_char()
+
+                print('Grado A: B/G/P: ')
+                grade = read_char()
+
+                data_list = [age, sex, civil_state, grade]
+                packed_data = pack_data(data_list)
+
+                data = f'{ced},{name},{lastname},{packed_data}\n'
                 lines[idx] = data
 
                 respuesta = input('¿Deseas guardar? si/no\n')
