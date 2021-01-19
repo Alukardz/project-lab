@@ -143,12 +143,10 @@ class Operations:
 
         print('Registro no encontrado.')
 
-    def edit_data(cid):
-        idx = find_data(cid)
-
-        if idx:
+    def edit_data(self, cid):
+        if self.find_data(cid):
             try:
-                with open(doc_dir, 'r+') as doc:
+                with open(self._doc_dir, 'r+') as doc:
                     lines = doc.readlines()
                     doc.seek(0)
 
@@ -190,27 +188,24 @@ class Operations:
             except IOError:
                 print('Ruta del documento inválida.')
 
+    def delete_data(self, cid):
+        if self.find_data(cid):
+            respuesta = input('¿Seguro que desea eliminar este registro? si/no\n')
+            if respuesta == 'si':
 
-def delete_data(cid):
-    idx = find_data(cid)
+                try:
+                    with open(doc_dir, 'r+') as doc:
+                        lines = doc.readlines()
+                        doc.seek(0)
+                        doc.truncate()
 
-    if idx:
-        respuesta = input('¿Seguro que desea eliminar este registro? si/no\n')
-        if respuesta == 'si':
+                        for line in lines:
+                            if line != lines[idx]:
+                                doc.write(line)
+                        print('Registro eliminado.')
 
-            try:
-                with open(doc_dir, 'r+') as doc:
-                    lines = doc.readlines()
-                    doc.seek(0)
-                    doc.truncate()
-
-                    for line in lines:
-                        if line != lines[idx]:
-                            doc.write(line)
-                    print('Registro eliminado.')
-
-            except IOError:
-                print('Error eliminando registro.')
+                except IOError:
+                    print('Error eliminando registro.')
 
 
 if len(sys.argv) >= 2:
