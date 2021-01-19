@@ -21,22 +21,30 @@ Elige la opción deseada:
 ''')
 
         if selected == '1':
-            Operations.register_data('a+')
+            op = Operations('a+')
+            op.register_data()
 
         elif selected == '2':
-            list_data()
+            op = Operations('r')
+            op.list_data()
 
         elif selected == '3':
-            cid = input('Cedula: ')
-            find_data(cid)
+            print('Cedula: ')
+            cid = read_int()
+            op = Operations('r')
+            op.find_data(cid)
 
         elif selected == '4':
-            cid = input('Cedula del registro a editar: ')
-            edit_data(cid)
+            print('Cedula del registro a editar: ')
+            cid = read_int()
+            op = Operations('r+')
+            op.edit_data(cid)
 
         elif selected == '5':
-            cid = input('Cedula del registro a eliminar: ')
-            delete_data(cid)
+            print('Cedula del registro a eliminar: ')
+            cid = read_int()
+            op = Operations('r+')
+            op.delete_data(cid)
 
         elif selected == '6':
             print('Adios!')
@@ -54,20 +62,21 @@ class Operations:
             doc_dir = os.path.join(os.getcwd(), sys.argv[1])
             self._doc = open(doc_dir, mode)
             lines = self._doc.readlines()
+            current_pos = self._doc.tell()
 
             if os.path.getsize(doc_dir) == 0:
                 self._doc.write(write_header)
-            elif len(lines) < 2:
-                print('No hay registros.')
+
             else:
                 self._doc.seek(0)
                 head = self._doc.readline().strip('\n').split(',')
-                for idx, line in enumerate(lines[1:], 1):
+                for idx, line in enumerate(self._doc.readlines(), 1):
                     split_line = line.strip('\n').split(',')
                     perso = ComPerson(split_line[0], split_line[1], split_line[2])
                     perso.unpack_data(int(split_line[3]))
 
-                return ComPerson.person_list
+                self._perso_list = ComPerson.person_list
+                return True
 
         except IOError:
             print('Ruta del documento inválida.')
@@ -78,6 +87,10 @@ class Operations:
         while counter == 0:
             print('Cedula: ')
             cid = read_int()
+
+            if self.find_data(cid):
+                print('especificar otro.')
+                self.register_data()
 
             print('Nombre: ')
             name = read_char()
@@ -104,6 +117,7 @@ class Operations:
             respuesta = input('¿Deseas guardar? si/no\n')
 
             if respuesta == 'no':
+                self._doc.close()
                 counter += 1
                 print('bye')
 
@@ -112,73 +126,69 @@ class Operations:
                 self._doc.write(data)
                 print('Registro creado.')
 
+    def find_data(self, cid):
+        for perso in self._perso_list:
+            if int(perso._cid) == cid:
+                print('Record Encontrado')
+                return True
 
-def list_data():
-    perso_list = load_file('r')
-    for idx, perso in enumerate(perso_list, 1):
-        print(f'Record: {idx}')
-        print(str(perso))
+        return False
 
+    def list_data(self):
+        if self._perso_list:
+            for idx, perso in enumerate(self._perso_list, 1):
+                print(f'Record: {idx}')
+                print(str(perso))
+            return True
 
-def find_data(cid):
-    perso_list = load_file('r')
-    for idx, perso in enumerate(perso_list, 1):
-        if perso._cid == cid:
-            print(f'Record: {idx}')
-            print(str(perso))
+        print('Registro no encontrado.')
 
-            return idx
+    def edit_data(cid):
+        idx = find_data(cid)
 
-    print('Registro no encontrado.')
-    return cid
+        if idx:
+            try:
+                with open(doc_dir, 'r+') as doc:
+                    lines = doc.readlines()
+                    doc.seek(0)
 
+                    print('Cedula: ')
+                    ced = read_int()
 
-def edit_data(cid):
-    idx = find_data(cid)
+                    print('Nombre: ')
+                    name = read_char()
 
-    if idx:
-        try:
-            with open(doc_dir, 'r+') as doc:
-                lines = doc.readlines()
-                doc.seek(0)
+                    print('Apellido: ')
+                    lastname = read_char()
 
-                print('Cedula: ')
-                ced = read_int()
+                    print('Edad: ')
+                    age = read_int()
 
-                print('Nombre: ')
-                name = read_char()
+                    print('Sexo: F/M ')
+                    sex = read_char()
 
-                print('Apellido: ')
-                lastname = read_char()
+                    print('Estado Civil: C/S ')
+                    civil_state = read_char()
 
-                print('Edad: ')
-                age = read_int()
+                    print('Grado A: B/G/P: ')
+                    grade = read_char()
 
-                print('Sexo: F/M ')
-                sex = read_char()
+                    data_list = [age, sex, civil_state, grade]
+                    packed_data = pack_data(data_list)
 
-                print('Estado Civil: C/S ')
-                civil_state = read_char()
+                    data = f'{ced},{name},{lastname},{packed_data}\n'
+                    lines[idx] = data
 
-                print('Grado A: B/G/P: ')
-                grade = read_char()
+                    respuesta = input('¿Deseas guardar? si/no\n')
 
-                data_list = [age, sex, civil_state, grade]
-                packed_data = pack_data(data_list)
+                    if respuesta == 'si':
+                        doc.writelines(lines)
+                        print('Registro guardado.')
+                    else:
+                        print('bye')
 
-                data = f'{ced},{name},{lastname},{packed_data}\n'
-                lines[idx] = data
-
-                respuesta = input('¿Deseas guardar? si/no\n')
-
-                if respuesta == 'si':
-                    doc.writelines(lines)
-                    print('Registro guardado.')
-                else:
-                    print('bye')
-
-        except IOError:
-            print('Ruta del documento inválida.')
+            except IOError:
+                print('Ruta del documento inválida.')
 
 
 def delete_data(cid):
