@@ -1,7 +1,6 @@
 import sys
 import os
 from char_char import read_char, read_int
-from bitpacking import pack_data, unpack_data
 from encapsulated import Person, ComPerson
 
 
