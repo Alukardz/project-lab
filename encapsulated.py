@@ -1,11 +1,16 @@
 class Person:
 
-    def __init__(self, cid: str, name: str, lastname: str):
-        self._cid = cid
-        self._name = name
-        self._lastname = lastname
+    def __init__(self, data):
+        self._cid = data[0]
+        self._name = data[1]
+        self._lastname = data[2]
 
-    def pack_data(self, age: int, sex: str, civil_state: str, grade: str):
+    def pack_data(self, data):
+        age = data[0]
+        sex = data[1]
+        civil_state = data[2]
+        grade = data[3]
+
         packed_info = age << 4
 
         if sex == 'M':
@@ -36,11 +41,13 @@ class ComPerson(Person):
     header = ['Cedula', 'Nombre', 'Apellido', 'Edad', 'Sexo', 'Estado_Civil', 'Grado_Academico']
     person_list = []
 
-    def __init__(self, cid: str, name: str, lastname: str):
+    def __init__(self, data):
         ComPerson.person_list.append(self)
-        super().__init__(cid, name, lastname)
+        super().__init__(data[:3])
 
     def unpack_data(self, packed_info: int):
+        self._packed_info = packed_info
+
         if not packed_info & 1:
             self._grade = 'G'
 
@@ -73,4 +80,8 @@ class ComPerson(Person):
     {self.header[5]}: {self._civil_state}
     {self.header[6]}: {self._grade}
     '''
+        return info_string
+
+    def get_perso(self):
+        info_string = f'{self._cid}, {self._name}, {self._lastname}, {self._packed_info}'
         return info_string

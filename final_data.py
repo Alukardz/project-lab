@@ -52,12 +52,12 @@ Elige la opción deseada:
 
 
 class Operations:
+    write_header = 'Cedula,Nombre,Apellido,Packed_Info'
 
     def __init__(self, mode):
         self.load_file(mode)
 
     def load_file(self, mode):
-        write_header = 'Cedula,Nombre,Apellido,packed_info'
         try:
             doc_dir = os.path.join(os.getcwd(), sys.argv[1])
             self._doc = open(doc_dir, mode)
@@ -65,14 +65,14 @@ class Operations:
             current_pos = self._doc.tell()
 
             if os.path.getsize(doc_dir) == 0:
-                self._doc.write(write_header)
+                self._doc.write(self.write_header)
 
             else:
                 self._doc.seek(0)
                 head = self._doc.readline().strip('\n').split(',')
                 for idx, line in enumerate(self._doc.readlines(), 1):
                     split_line = line.strip('\n').split(',')
-                    perso = ComPerson(split_line[0], split_line[1], split_line[2])
+                    perso = ComPerson(split_line[:3])
                     perso.unpack_data(int(split_line[3]))
 
                 self._perso_list = ComPerson.person_list
@@ -85,39 +85,15 @@ class Operations:
         counter = 0
 
         while counter == 0:
-            print('Cedula: ')
-            cid = read_int()
+            data_list = self.write_data('create')
 
-            if self.find_data(cid):
-                print('especificar otro.')
-                self.register_data()
-
-            print('Nombre: ')
-            name = read_char()
-
-            print('Apellido: ')
-            lastname = read_char()
-
-            print('Edad: ')
-            age = read_int()
-
-            print('Sexo: F/M ')
-            sex = read_char()
-
-            print('Estado Civil: C/S ')
-            civil_state = read_char()
-
-            print('Grado A: B/G/P: ')
-            grade = read_char()
-
-            perso = Person(cid, name, lastname)
-            perso.pack_data(age, sex, civil_state, grade)
+            perso = Person(data_list[:3])
+            perso.pack_data(data_list[3:])
             data = str(perso)
 
             respuesta = input('¿Deseas guardar? si/no\n')
 
             if respuesta == 'no':
-                self._doc.close()
                 counter += 1
                 print('bye')
 
@@ -125,12 +101,13 @@ class Operations:
                 self._doc.write('\n')
                 self._doc.write(data)
                 print('Registro creado.')
+        self._doc.flush()
 
     def find_data(self, cid):
         for perso in self._perso_list:
             if int(perso._cid) == cid:
                 print('Record Encontrado')
-                return True
+                return perso
 
         return False
 
@@ -142,70 +119,81 @@ class Operations:
             return True
 
         print('Registro no encontrado.')
+        self._doc.flush()
 
     def edit_data(self, cid):
-        if self.find_data(cid):
-            try:
-                with open(self._doc_dir, 'r+') as doc:
-                    lines = doc.readlines()
-                    doc.seek(0)
+        perso = self.find_data(cid)
 
-                    print('Cedula: ')
-                    ced = read_int()
+        if perso:
+            data_list = self.write_data('update')
+            perso._cid = data_list[0]
+            perso._name = data_list[1]
+            perso._lastname = data_list[2]
+            perso._packed_info = perso.pack_data(data_list[3:])
 
-                    print('Nombre: ')
-                    name = read_char()
+            respuesta = input('¿Deseas guardar? si/no\n')
 
-                    print('Apellido: ')
-                    lastname = read_char()
+            if respuesta == 'si':
+                self._doc.seek(0)
+                self._doc.write(self.write_header)
+                for person in self._perso_list:
+                    self._doc.write('\n')
+                    self._doc.write(person.get_perso())
+                print('Registro guardado.')
+            else:
+                print('bye')
 
-                    print('Edad: ')
-                    age = read_int()
+            self._doc.flush()
 
-                    print('Sexo: F/M ')
-                    sex = read_char()
-
-                    print('Estado Civil: C/S ')
-                    civil_state = read_char()
-
-                    print('Grado A: B/G/P: ')
-                    grade = read_char()
-
-                    data_list = [age, sex, civil_state, grade]
-                    packed_data = pack_data(data_list)
-
-                    data = f'{ced},{name},{lastname},{packed_data}\n'
-                    lines[idx] = data
-
-                    respuesta = input('¿Deseas guardar? si/no\n')
-
-                    if respuesta == 'si':
-                        doc.writelines(lines)
-                        print('Registro guardado.')
-                    else:
-                        print('bye')
-
-            except IOError:
-                print('Ruta del documento inválida.')
+        else:
+            print('Registro no encontrado.')
 
     def delete_data(self, cid):
-        if self.find_data(cid):
+        perso = self.find_data(cid)
+
+        if perso:
             respuesta = input('¿Seguro que desea eliminar este registro? si/no\n')
             if respuesta == 'si':
+                self._doc.seek(0)
+                self._doc.truncate()
+                self._doc.write(self.write_header)
+                for person in self._perso_list:
+                    if person != perso:
+                        self._doc.write('\n')
+                        self._doc.write(person.get_perso())
+                print('Registro eliminado.')
 
-                try:
-                    with open(doc_dir, 'r+') as doc:
-                        lines = doc.readlines()
-                        doc.seek(0)
-                        doc.truncate()
+            self._doc.flush()
 
-                        for line in lines:
-                            if line != lines[idx]:
-                                doc.write(line)
-                        print('Registro eliminado.')
+    def write_data(self, task):
 
-                except IOError:
-                    print('Error eliminando registro.')
+        print('Cedula: ')
+        cid = read_int()
+
+        if task == 'create' and self.find_data(cid):
+            print('especificar otro.')
+            self.write_data('create')
+
+        print('Nombre: ')
+        name = read_char()
+
+        print('Apellido: ')
+        lastname = read_char()
+
+        print('Edad: ')
+        age = read_int()
+
+        print('Sexo: F/M ')
+        sex = read_char()
+
+        print('Estado Civil: C/S ')
+        civil_state = read_char()
+
+        print('Grado A: B/G/P: ')
+        grade = read_char()
+
+        data = [cid, name, lastname, age, sex, civil_state, grade]
+        return data
 
 
 if len(sys.argv) >= 2:
