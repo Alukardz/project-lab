@@ -5,6 +5,15 @@ class Person:
         self._name = data[1]
         self._lastname = data[2]
 
+    def __hash__(self):
+        return hash((self._age, self._cid))
+
+    def __eq__(self, other):
+        return self._age == other._age and self._cid == other._cid
+
+    def __gt__(self, other):
+        return self._age > other._age
+
     def pack_data(self, data):
         age = data[0]
         sex = data[1]

@@ -1,6 +1,6 @@
 import sys
 import os
-from char_char import read_char, read_int
+from utility import read_char, read_int, perso_sort, search_age, write_data
 from encapsulated import Person, ComPerson
 
 
@@ -74,7 +74,7 @@ class Operations:
                     perso = ComPerson(split_line[:3])
                     perso.unpack_data(int(split_line[3]))
 
-                self._perso_list = ComPerson.person_list
+                self._perso_list = perso_sort(ComPerson.person_list)
                 return True
 
         except IOError:
@@ -84,11 +84,14 @@ class Operations:
         counter = 0
 
         while counter == 0:
-            data_list = self.write_data('create')
+            data_list = write_data()
 
             perso = Person(data_list[:3])
-            perso.pack_data(data_list[3:])
-            data = str(perso)
+            perso._age = data_list[3]
+
+            if self.find_person(perso):
+                print('Persona registrada, especificar otra.')
+                self.register_data()
 
             respuesta = input('¿Deseas guardar? si/no\n')
 
@@ -97,8 +100,9 @@ class Operations:
                 print('bye')
 
             else:
+                perso.pack_data(data_list[3:])
                 self._doc.write('\n')
-                self._doc.write(data)
+                self._doc.write(str(perso))
                 print('Registro creado.')
         self._doc.flush()
 
@@ -121,23 +125,22 @@ class Operations:
         self._doc.flush()
 
     def edit_data(self, cid):
-        perso = self.find_data(cid)
 
-        if perso:
-            data_list = self.write_data('update')
-            perso._cid = data_list[0]
-            perso._name = data_list[1]
-            perso._lastname = data_list[2]
-            perso._packed_info = perso.pack_data(data_list[3:])
+        data_list = write_data()
 
+        perso = Person(data_list[:3])
+        perso._age = data_list[3]
+
+        if self.find_person(perso):
             respuesta = input('¿Deseas guardar? si/no\n')
 
             if respuesta == 'si':
+                perso.pack_data(data_list[3:])
                 self._doc.seek(0)
                 self._doc.write(self.write_header)
                 for person in self._perso_list:
                     self._doc.write('\n')
-                    self._doc.write(person.get_perso())
+                    self._doc.write(str(person))
                 print('Registro guardado.')
             else:
                 print('bye')
@@ -164,35 +167,22 @@ class Operations:
 
             self._doc.flush()
 
-    def write_data(self, task):
+    def find_person(self, obj):
+        lis = self._perso_list
+        start = 0
+        end = len(lis)-1
 
-        print('Cedula: ')
-        cid = read_int()
+        obj_list = search_age(lis, obj._age, start, end)
 
-        if task == 'create' and self.find_data(cid):
-            print('especificar otro.')
-            self.write_data('create')
+        if obj_list != -1:
+            for perso in obj_list:
+                if obj.__eq__(perso):
+                    return True
+                else:
+                    return False
 
-        print('Nombre: ')
-        name = read_char()
-
-        print('Apellido: ')
-        lastname = read_char()
-
-        print('Edad: ')
-        age = read_int()
-
-        print('Sexo: F/M ')
-        sex = read_char()
-
-        print('Estado Civil: C/S ')
-        civil_state = read_char()
-
-        print('Grado A: B/G/P: ')
-        grade = read_char()
-
-        data = [cid, name, lastname, age, sex, civil_state, grade]
-        return data
+        else:
+            return False
 
 
 if len(sys.argv) >= 2:
