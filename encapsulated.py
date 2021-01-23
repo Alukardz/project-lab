@@ -1,9 +1,11 @@
 class Person:
 
-    def __init__(self, data):
+    def __init__(self, *args):
+        data = args[0]
         self._cid = data[0]
-        self._name = data[1]
-        self._lastname = data[2]
+        if len(data) > 1:
+            self._name = data[1]
+            self._lastname = data[2]
 
     def __hash__(self):
         return hash((self._age, self._cid))
@@ -14,27 +16,23 @@ class Person:
     def __gt__(self, other):
         return self._age > other._age
 
-    def pack_data(self, data):
-        age = data[0]
-        sex = data[1]
-        civil_state = data[2]
-        grade = data[3]
+    def pack_data(self):
 
-        packed_info = age << 4
+        packed_info = self._age << 4
 
-        if sex == 'M':
+        if self._sex == 'M':
             packed_info = packed_info | 8
 
-        if civil_state == 'C':
+        if self._civil_state == 'C':
             packed_info = packed_info | 4
 
-        if grade == 'P':
+        if self._grade == 'P':
             packed_info = packed_info | 3
 
-        elif grade == 'G':
+        elif self._grade == 'G':
             packed_info = packed_info | 2
 
-        elif grade == 'B':
+        elif self._grade == 'B':
             packed_info = packed_info | 1
 
         self._packed_info = packed_info
@@ -42,7 +40,7 @@ class Person:
         return packed_info
 
     def __str__(self):
-        info_string = f'{self._cid}, {self._name}, {self._lastname}, {self._packed_info}'
+        info_string = f'{self._cid},{self._name},{self._lastname},{self._packed_info}'
         return info_string
 
 
@@ -52,7 +50,7 @@ class ComPerson(Person):
 
     def __init__(self, data):
         ComPerson.person_list.append(self)
-        super().__init__(data[:3])
+        super().__init__(data)
 
     def unpack_data(self, packed_info: int):
         self._packed_info = packed_info
@@ -92,5 +90,5 @@ class ComPerson(Person):
         return info_string
 
     def get_perso(self):
-        info_string = f'{self._cid}, {self._name}, {self._lastname}, {self._packed_info}'
+        info_string = f'{self._cid},{self._name},{self._lastname},{self._packed_info}'
         return info_string

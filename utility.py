@@ -81,17 +81,13 @@ def search_age(lis, obj_age, start, end):
         if obj_age == lis[mid]._age:
             obj_list.append(lis[mid])
 
-            if obj_age != lis[mid-1]._age and obj_age != lis[mid+1]._age:
-                return obj_list
+            while len(lis) > 1 and mid+1 <= len(lis)-1 and obj_age == lis[mid+1]._age:
+                obj_list.append(lis[mid+1])
+                mid += 1
 
-            elif len(lis) > 1:
-                while obj_age == lis[mid+1]._age:
-                    obj_list.append(lis[mid+1])
-                    mid += 1
-
-                while mid-1 >= 0 and obj_age == lis[mid-1]._age:
-                    obj_list.append(lis[mid-1])
-                    mid -= 1
+            while len(lis) > 1 and mid-1 >= 0 and obj_age == lis[mid-1]._age:
+                obj_list.append(lis[mid-1])
+                mid -= 1
 
             return obj_list
 
@@ -103,30 +99,3 @@ def search_age(lis, obj_age, start, end):
 
     else:
         return -1
-
-
-def write_data():
-
-    print('Cedula: ')
-    cid = read_int()
-
-    print('Nombre: ')
-    name = read_char()
-
-    print('Apellido: ')
-    lastname = read_char()
-
-    print('Edad: ')
-    age = read_int()
-
-    print('Sexo: F/M ')
-    sex = read_char()
-
-    print('Estado Civil: C/S ')
-    civil_state = read_char()
-
-    print('Grado A: B/G/P: ')
-    grade = read_char()
-
-    data = [cid, name, lastname, age, sex, civil_state, grade]
-    return data

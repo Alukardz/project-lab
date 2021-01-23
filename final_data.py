@@ -1,6 +1,6 @@
 import sys
 import os
-from utility import read_char, read_int, perso_sort, search_age, write_data
+from utility import read_char, read_int, perso_sort, search_age
 from encapsulated import Person, ComPerson
 
 
@@ -28,22 +28,16 @@ Elige la opción deseada:
             op.list_data()
 
         elif selected == '3':
-            print('Cedula: ')
-            cid = read_int()
             op = Operations('r')
-            op.find_data(cid)
+            op.find_data()
 
         elif selected == '4':
-            print('Cedula del registro a editar: ')
-            cid = read_int()
             op = Operations('r+')
-            op.edit_data(cid)
+            op.edit_data()
 
         elif selected == '5':
-            print('Cedula del registro a eliminar: ')
-            cid = read_int()
             op = Operations('r+')
-            op.delete_data(cid)
+            op.delete_data()
 
         elif selected == '6':
             print('Adios!')
@@ -72,6 +66,7 @@ class Operations:
                 for idx, line in enumerate(self._doc.readlines(), 1):
                     split_line = line.strip('\n').split(',')
                     perso = ComPerson(split_line[:3])
+                    # print(split_line[:3])
                     perso.unpack_data(int(split_line[3]))
 
                 self._perso_list = perso_sort(ComPerson.person_list)
@@ -84,14 +79,7 @@ class Operations:
         counter = 0
 
         while counter == 0:
-            data_list = write_data()
-
-            perso = Person(data_list[:3])
-            perso._age = data_list[3]
-
-            if self.find_person(perso):
-                print('Persona registrada, especificar otra.')
-                self.register_data()
+            perso = self.write_data('create')
 
             respuesta = input('¿Deseas guardar? si/no\n')
 
@@ -100,19 +88,17 @@ class Operations:
                 print('bye')
 
             else:
-                perso.pack_data(data_list[3:])
+                perso.pack_data()
                 self._doc.write('\n')
                 self._doc.write(str(perso))
                 print('Registro creado.')
         self._doc.flush()
 
-    def find_data(self, cid):
-        for perso in self._perso_list:
-            if int(perso._cid) == cid:
-                print('Record Encontrado')
-                return perso
+    def find_data(self):
+        perso = self.find_person()
 
-        return False
+        print(str(perso))
+        return True
 
     def list_data(self):
         if self._perso_list:
@@ -124,34 +110,28 @@ class Operations:
         print('Registro no encontrado.')
         self._doc.flush()
 
-    def edit_data(self, cid):
+    def edit_data(self):
 
-        data_list = write_data()
+        perso = self.write_data('update')
 
-        perso = Person(data_list[:3])
-        perso._age = data_list[3]
+        respuesta = input('¿Deseas guardar? si/no\n')
 
-        if self.find_person(perso):
-            respuesta = input('¿Deseas guardar? si/no\n')
-
-            if respuesta == 'si':
-                perso.pack_data(data_list[3:])
-                self._doc.seek(0)
-                self._doc.write(self.write_header)
-                for person in self._perso_list:
-                    self._doc.write('\n')
-                    self._doc.write(str(person))
-                print('Registro guardado.')
-            else:
-                print('bye')
-
-            self._doc.flush()
-
+        if respuesta == 'si':
+            perso.pack_data()
+            self._doc.seek(0)
+            self._doc.write(self.write_header)
+            for person in self._perso_list:
+                self._doc.write('\n')
+                self._doc.write(person.get_perso())
+            self._doc.truncate()
+            print('Registro guardado.')
         else:
-            print('Registro no encontrado.')
+            print('bye')
 
-    def delete_data(self, cid):
-        perso = self.find_data(cid)
+        self._doc.flush()
+
+    def delete_data(self):
+        perso = self.find_person()
 
         if perso:
             respuesta = input('¿Seguro que desea eliminar este registro? si/no\n')
@@ -167,22 +147,62 @@ class Operations:
 
             self._doc.flush()
 
-    def find_person(self, obj):
+    def find_person(self):
         lis = self._perso_list
         start = 0
         end = len(lis)-1
 
-        obj_list = search_age(lis, obj._age, start, end)
+        print('Cedula: ')
+        cid = read_int()
+        data = (str(cid),)
+
+        print('Edad: ')
+        age = read_int()
+
+        self._obj = Person(data)
+        self._obj._age = age
+
+        obj_list = search_age(lis, age, start, end)
 
         if obj_list != -1:
             for perso in obj_list:
-                if obj.__eq__(perso):
-                    return True
+                if self._obj.__eq__(perso):
+                    return perso
                 else:
                     return False
 
         else:
             return False
+
+    def write_data(self, mode):
+        found = self.find_person()
+
+        if mode == 'create' and found:
+            print('Persona registrada, especificar otra.')
+            self.write_data('create')
+
+        elif mode == 'update' and not found:
+            print('No registros encontrados, intenta nuevamente.')
+            self.write_data('update')
+
+        perso = self._obj if not found else found
+
+        print('Nombre: ')
+        perso._name = read_char()
+
+        print('Apellido: ')
+        perso._lastname = read_char()
+
+        print('Sexo: F/M ')
+        perso._sex = read_char()
+
+        print('Estado Civil: C/S ')
+        perso._civil_state = read_char()
+
+        print('Grado A: B/G/P: ')
+        perso._grade = read_char()
+
+        return perso
 
 
 if len(sys.argv) >= 2:
