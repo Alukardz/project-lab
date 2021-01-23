@@ -61,12 +61,12 @@ class Operations:
                 self._doc.write(self.write_header)
 
             else:
+                ComPerson.person_list = []
                 self._doc.seek(0)
                 head = self._doc.readline().strip('\n').split(',')
                 for idx, line in enumerate(self._doc.readlines(), 1):
                     split_line = line.strip('\n').split(',')
                     perso = ComPerson(split_line[:3])
-                    # print(split_line[:3])
                     perso.unpack_data(int(split_line[3]))
 
                 self._perso_list = perso_sort(ComPerson.person_list)
@@ -97,8 +97,12 @@ class Operations:
     def find_data(self):
         perso = self.find_person()
 
-        print(str(perso))
-        return True
+        if perso:
+            print(str(perso))
+            return True
+        else:
+            print('Registro no encontrado.')
+            return False
 
     def list_data(self):
         if self._perso_list:
@@ -119,11 +123,13 @@ class Operations:
         if respuesta == 'si':
             perso.pack_data()
             self._doc.seek(0)
+            self._doc.truncate()
             self._doc.write(self.write_header)
             for person in self._perso_list:
+                if person.__eq__(perso):
+                    person = perso
                 self._doc.write('\n')
                 self._doc.write(person.get_perso())
-            self._doc.truncate()
             print('Registro guardado.')
         else:
             print('bye')
@@ -140,12 +146,16 @@ class Operations:
                 self._doc.truncate()
                 self._doc.write(self.write_header)
                 for person in self._perso_list:
-                    if person != perso:
+                    if person.__ne__(perso):
                         self._doc.write('\n')
                         self._doc.write(person.get_perso())
                 print('Registro eliminado.')
 
             self._doc.flush()
+
+        else:
+            print('Registro no encontrado.')
+            return False
 
     def find_person(self):
         lis = self._perso_list
